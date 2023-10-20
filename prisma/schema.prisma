@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Post {
+  id String @id @default(uuid())
+
+  title String
+  content String
+  author String
+  createdAt DateTime @default(now()) @unique
+
+  comments Comment[]
+}
+
+model Comment {
+  id String @id @default(uuid())
+
+  content String
+  author String
+  createdAt DateTime @default(now()) @unique
+
+  postId String
+  post Post @relation(fields: [postId], references: [id])
+
+  hasReplies Boolean @default(false)
+
+  // TOOD: filter in pagination
+  replyToId String? @unique
+  replyTo Comment? @relation("RepliesToComment", fields: [replyToId], references: [id])
+  comments Comment[] @relation("RepliesToComment")
+}
