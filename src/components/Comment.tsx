@@ -177,7 +177,7 @@ const Reply = ({ comment }: { comment: CommentData }) => {
               </div>
               <div className="modal-action">
                 <button className="btn btn-ghost rounded-md">Close</button>
-                <button className="btn rounded-md">Submit</button>
+                <button className="btn rounded-md btn-neutral">Submit</button>
               </div>
             </fieldset>
           </form>

@@ -112,7 +112,7 @@ const getPostComments = t.procedure
         take: 1
       }),
       prisma.comment.findMany({
-        take: 10,
+        take: 1,
         skip: input.cursor ? 1 : 0,
         cursor: input.cursor ? { createdAt: input.cursor } : undefined,
         orderBy: {
@@ -186,7 +186,7 @@ const getCommentReplies = t.procedure
         take: 1
       }),
       prisma.comment.findMany({
-        take: 10,
+        take: 1,
         skip: input.cursor ? 1 : 0,
         cursor: input.cursor ? { createdAt: input.cursor } : undefined,
         orderBy: {
