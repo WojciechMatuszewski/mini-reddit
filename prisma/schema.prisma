@@ -32,4 +32,6 @@ model Comment {
   inReplyTo Comment? @relation("RepliesToComment", fields: [inReplyToId], references: [id])
   comments Comment[] @relation("RepliesToComment")
   numberOfComments Int @default(0)
+
+  upVotes Int @default(0)
 }

@@ -48,14 +48,14 @@ export const CommentPost = ({ postId }: { postId: string }) => {
   return (
     <form onSubmit={handleOnSubmit}>
       <fieldset disabled={isPending}>
-        <legend className="font-semibold text-xl">Comment post</legend>
+        <legend className="font-semibold text-2xl">Comment post</legend>
 
         <div className="form-control">
           <label htmlFor={authorInputId} className="label">
             Author
           </label>
           <input
-            className="input input-bordered w-full rounded-md input-sm"
+            className="input input-bordered w-full rounded-md input-md"
             id={authorInputId}
             name="author"
             type="text"
@@ -68,14 +68,14 @@ export const CommentPost = ({ postId }: { postId: string }) => {
             Comment
           </label>
           <textarea
-            className="textarea textarea-bordered rounded-md input-sm"
+            className="textarea textarea-bordered rounded-md textarea-md"
             id={contentInputId}
             name="content"
           />
         </div>
 
         <button
-          className="btn btn-neutral self-start rounded-md btn-sm mt-3"
+          className="btn btn-neutral self-start rounded-md btn-md mt-4"
           type="submit"
         >
           {isPending ? "Submitting..." : "Submit"}

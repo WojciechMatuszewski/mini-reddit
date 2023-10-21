@@ -16,8 +16,9 @@ export default async function Page({ params }: { params: { slug: string } }) {
   }
 
   return (
-    <article className="max-w-sm m-auto flex flex-col gap-4">
+    <article className="max-w-sm m-auto">
       <PostContents post={post} />
+      <div className="divider" />
       <CommentPost postId={post.id} />
       <Suspense fallback={<span>Loading comments...</span>}>
         <PostComments postId={post.id} />

@@ -122,8 +122,6 @@ export const useGetCommentReplies = ({
   inReplyToId: string;
   postId: string;
 }) => {
-  console.log("fetching comments", { inReplyToId, postId });
-
   return useSuspenseInfiniteQuery({
     queryFn: async ({ pageParam }) => {
       return getTRPCClient().getCommentReplies.query({
@@ -142,6 +140,45 @@ export const useGetCommentReplies = ({
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => {
       return lastPage.cursor;
+    }
+  });
+};
+
+export const useUpVotePost = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id }: { id: string; postId: string }) => {
+      return await getTRPCClient().upVotePost.mutate({ id });
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["postComments", { postId: variables.postId }]
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["commentReplies", { postId: variables.postId }],
+        exact: false
+      });
+    }
+  });
+};
+
+export const useDownVotePost = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id }: { id: string; postId: string }) => {
+      return await getTRPCClient().downVotePost.mutate({ id });
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["postComments", { postId: variables.postId }]
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["commentReplies", { postId: variables.postId }],
+        exact: false
+      });
     }
   });
 };

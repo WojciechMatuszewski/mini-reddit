@@ -10,7 +10,7 @@ export const PostComments = ({ postId }: { postId: string }) => {
   const comments = data.pages.flatMap((page) => page.items);
   return (
     <section>
-      <h2 className="font-semibold text-lg mb-2">Comments</h2>
+      <h2 className="font-semibold text-3xl mb-2">Comments</h2>
       <ul className="grid grid-flow-row gap-3">
         {comments.map((comment) => {
           return <Comment key={comment.id} comment={comment} postId={postId} />;

@@ -209,6 +209,44 @@ const getCommentReplies = t.procedure
     };
   });
 
+const upVotePost = t.procedure
+  .input(
+    z.object({
+      id: z.string()
+    })
+  )
+  .mutation(async ({ input }) => {
+    return await prisma.comment.update({
+      where: {
+        id: input.id
+      },
+      data: {
+        upVotes: {
+          increment: 1
+        }
+      }
+    });
+  });
+
+const downVotePost = t.procedure
+  .input(
+    z.object({
+      id: z.string()
+    })
+  )
+  .mutation(async ({ input }) => {
+    return await prisma.comment.update({
+      where: {
+        id: input.id
+      },
+      data: {
+        upVotes: {
+          decrement: 1
+        }
+      }
+    });
+  });
+
 export const appRouter = t.router({
   createPost,
   getPosts,
@@ -216,7 +254,9 @@ export const appRouter = t.router({
   commentPost,
   getPostComments,
   replyComment,
-  getCommentReplies
+  getCommentReplies,
+  upVotePost,
+  downVotePost
 });
 
 export type AppRouter = typeof appRouter;
