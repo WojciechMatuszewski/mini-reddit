@@ -1,5 +1,6 @@
 import {
   useMutation,
+  useQueryClient,
   useSuspenseInfiniteQuery,
   useSuspenseQuery
 } from "@tanstack/react-query";
@@ -51,9 +52,16 @@ export const useGetPost = ({ id }: { id: string }) => {
 };
 
 export const useCommentPost = (options?: { onError: VoidFunction }) => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async (payload: RouterInputs["commentPost"]) => {
       return await getTRPCClient().commentPost.mutate(payload);
+    },
+    onSuccess: (_response, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["postComments", { postId: variables.postId }]
+      });
     },
     ...options
   });
@@ -69,7 +77,7 @@ export const useGetPostComments = ({ postId }: { postId: string }) => {
         postId
       });
     },
-    queryKey: ["posts"],
+    queryKey: ["postComments", { postId }],
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => {
       return lastPage.cursor;
@@ -78,9 +86,62 @@ export const useGetPostComments = ({ postId }: { postId: string }) => {
 };
 
 export const useReplyComment = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async (payload: RouterInputs["replyComment"]) => {
       return await getTRPCClient().replyComment.mutate(payload);
+    },
+    onSuccess: (_response, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["postComments", { postId: variables.postId }]
+      });
+
+      /**
+       * This is not very well optimized.
+       * Ideally we would be able to have a granular cache updates.
+       * Sadly, this is not really possible with tanstack-query.
+       */
+      queryClient.invalidateQueries({
+        queryKey: [
+          "commentReplies",
+          {
+            postId: variables.postId
+          }
+        ],
+        exact: false
+      });
+    }
+  });
+};
+
+export const useGetCommentReplies = ({
+  inReplyToId,
+  postId
+}: {
+  inReplyToId: string;
+  postId: string;
+}) => {
+  console.log("fetching comments", { inReplyToId, postId });
+
+  return useSuspenseInfiniteQuery({
+    queryFn: async ({ pageParam }) => {
+      return getTRPCClient().getCommentReplies.query({
+        inReplyToId,
+        postId,
+        cursor: pageParam
+      });
+    },
+    queryKey: [
+      "commentReplies",
+      {
+        inReplyToId,
+        postId
+      }
+    ],
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => {
+      return lastPage.cursor;
     }
   });
 };

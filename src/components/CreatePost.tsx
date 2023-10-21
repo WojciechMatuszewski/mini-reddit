@@ -59,7 +59,7 @@ export const CreatePost = () => {
         <div className="flex flex-col">
           <label htmlFor={authorInputId}>Author</label>
           <input
-            className="border bg-red-50"
+            className="input input-bordered w-full rounded-md"
             id={authorInputId}
             name="author"
             type="text"
@@ -70,7 +70,7 @@ export const CreatePost = () => {
         <div className="flex flex-col">
           <label htmlFor={titleInputId}>Title</label>
           <input
-            className="border bg-red-50"
+            className="input input-bordered w-full rounded-md"
             id={titleInputId}
             name="title"
             type="text"
@@ -81,13 +81,13 @@ export const CreatePost = () => {
         <div className="flex flex-col">
           <label htmlFor={contentInputId}>Content</label>
           <textarea
-            className="border bg-red-50"
+            className="textarea textarea-bordered rounded-md"
             id={contentInputId}
             name="content"
           />
         </div>
 
-        <button className="border self-start p-2" type="submit">
+        <button className="btn btn-neutral self-start rounded-md" type="submit">
           {isPending ? "Submitting..." : "Submit"}
         </button>
 

@@ -1,0 +1,51 @@
+.comment {
+  --grid-gap: 0.75rem;
+  --avatar-size: 40px;
+
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: [comment] auto [replies] auto;
+
+  grid-gap: var(--grid-gap);
+}
+
+.comment::before {
+  content: "";
+  height: calc(100% - 50px);
+  inset-block-start: 50px;
+  width: 1px;
+  background: gray;
+  position: absolute;
+  left: 20px;
+}
+
+.wrapper {
+  display: grid;
+  grid-gap: var(--grid-gap);
+  grid-template-columns: [avatar] min-content [content] 1fr;
+  position: relative;
+}
+
+.avatar {
+  width: var(--avatar-size);
+  height: var(--avatar-size);
+  border-radius: 50%;
+  background: blue;
+
+  grid-column: avatar;
+}
+
+.content {
+  grid-column: content;
+  word-break: break-all;
+}
+
+.controls {
+  grid-column: content;
+}
+
+.replies {
+  position: relative;
+  margin-inline-start: calc(var(--avatar-size) + var(--grid-gap));
+}

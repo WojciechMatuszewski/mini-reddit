@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { startTransition } from "react";
+import { useTransition } from "react";
 import { PostData, PostPaginationData, useGetPosts } from "../lib/client";
 
 export const Posts = ({ initialData }: { initialData: PostPaginationData }) => {
@@ -16,17 +16,7 @@ export const Posts = ({ initialData }: { initialData: PostPaginationData }) => {
           return <Post post={post} key={post.id} />;
         })}
       </ul>
-      <button
-        className="mt-2 border p-2 disabled:bg-gray-400"
-        disabled={!hasNextPage}
-        onClick={() => {
-          startTransition(() => {
-            fetchNextPage();
-          });
-        }}
-      >
-        Next page
-      </button>
+      {hasNextPage ? <NextPageButton onClick={() => fetchNextPage()} /> : null}
     </section>
   );
 };
@@ -40,3 +30,21 @@ function Post({ post }: { post: NonNullable<PostData> }) {
     </li>
   );
 }
+
+const NextPageButton = ({ onClick }: { onClick: VoidFunction }) => {
+  const [isPending, startTransition] = useTransition();
+
+  return (
+    <button
+      className="mt-2 border p-2 disabled:bg-gray-400"
+      disabled={isPending}
+      onClick={() => {
+        startTransition(() => {
+          onClick();
+        });
+      }}
+    >
+      Next page
+    </button>
+  );
+};

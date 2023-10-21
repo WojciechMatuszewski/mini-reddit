@@ -118,8 +118,9 @@ const getPostComments = t.procedure
         orderBy: {
           createdAt: "desc"
         },
-        include: {
-          replies: true
+        where: {
+          postId: input.postId,
+          inReplyToId: null
         }
       })
     ]);
@@ -137,66 +138,75 @@ const getPostComments = t.procedure
 const replyComment = t.procedure
   .input(
     z.object({
-      commentId: z.string(),
+      inReplyToId: z.string(),
       postId: z.string(),
       content: z.string(),
       author: z.string()
     })
   )
   .mutation(async ({ input }) => {
-    console.log("before creating the reply");
+    const [comment] = await prisma.$transaction([
+      prisma.comment.create({
+        data: {
+          author: input.author,
+          content: input.content,
+          inReplyToId: input.inReplyToId,
+          postId: input.postId
+        }
+      }),
+      prisma.comment.update({
+        where: {
+          id: input.inReplyToId
+        },
+        data: {
+          numberOfComments: {
+            increment: 1
+          }
+        }
+      })
+    ]);
 
-    return await prisma.reply.create({
-      data: {
-        author: input.author,
-        content: input.content,
-        commentId: input.commentId
-      }
-    });
+    return comment;
   });
 
-const getReplies = t.procedure
+const getCommentReplies = t.procedure
   .input(
     z.object({
-      replyId: z.string(),
-      cursor: z.string()
+      inReplyToId: z.string(),
+      postId: z.string(),
+      cursor: z.string().optional()
     })
   )
   .query(async ({ input }) => {
-    return {};
-    // const [[lastReply], paginatedReplies] = await prisma.$transaction([
-    //   prisma.reply.findMany({
-    //     orderBy: {
-    //       createdAt: "asc"
-    //     },
-    //     take: 1,
-    //     where: {
-    //       replyTo: {
+    const [[lastComment], paginatedComments] = await prisma.$transaction([
+      prisma.comment.findMany({
+        orderBy: {
+          createdAt: "asc"
+        },
+        take: 1
+      }),
+      prisma.comment.findMany({
+        take: 10,
+        skip: input.cursor ? 1 : 0,
+        cursor: input.cursor ? { createdAt: input.cursor } : undefined,
+        orderBy: {
+          createdAt: "desc"
+        },
+        where: {
+          postId: input.postId,
+          inReplyToId: input.inReplyToId
+        }
+      })
+    ]);
 
-    //       }
-    //     }
-    //   }),
-    //   prisma.comment.findMany({
-    //     take: 10,
-    //     skip: input.cursor ? 1 : 0,
-    //     cursor: input.cursor ? { createdAt: input.cursor } : undefined,
-    //     orderBy: {
-    //       createdAt: "desc"
-    //     },
-    //     include: {
-    //       replies: true
-    //     }
-    //   })
-    // ]);
+    const lastPaginatedComment =
+      paginatedComments[paginatedComments.length - 1];
+    const hasNextPage = lastComment?.id !== lastPaginatedComment?.id;
 
-    // const lastPaginatedComment =
-    //   paginatedComments[paginatedComments.length - 1];
-    // const hasNextPage = lastComment?.id !== lastPaginatedComment?.id;
-
-    // return {
-    //   items: paginatedComments,
-    //   cursor: hasNextPage ? lastPaginatedComment?.createdAt : undefined
-    // };
+    return {
+      items: paginatedComments,
+      cursor: hasNextPage ? lastPaginatedComment?.createdAt : undefined
+    };
   });
 
 export const appRouter = t.router({
@@ -205,7 +215,8 @@ export const appRouter = t.router({
   getPost,
   commentPost,
   getPostComments,
-  replyComment
+  replyComment,
+  getCommentReplies
 });
 
 export type AppRouter = typeof appRouter;

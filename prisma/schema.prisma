@@ -28,10 +28,8 @@ model Comment {
   postId String
   post Post @relation(fields: [postId], references: [id])
 
-  hasReplies Boolean @default(false)
-
-  // TOOD: filter in pagination
-  replyToId String? @unique
-  replyTo Comment? @relation("RepliesToComment", fields: [replyToId], references: [id])
+  inReplyToId String?
+  inReplyTo Comment? @relation("RepliesToComment", fields: [inReplyToId], references: [id])
   comments Comment[] @relation("RepliesToComment")
+  numberOfComments Int @default(0)
 }
