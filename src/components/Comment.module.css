@@ -5,14 +5,15 @@
   position: relative;
   display: grid;
   grid-template-columns: 1fr;
-  grid-template-rows: [comment] auto [replies] auto;
+  grid-template-rows: 1fr;
 
   grid-gap: var(--grid-gap);
 }
 
 .comment::before {
   content: "";
-  height: calc(100% - var(--avatar-size) - 16px);
+
+  height: calc(100% - var(--avatar-size) - 8px);
 
   width: 2px;
   background: hsl(var(--nc));
@@ -22,23 +23,7 @@
   inset-block-start: calc(var(--avatar-size) + 4px);
 }
 
-.wrapper {
-  display: grid;
-  grid-gap: var(--grid-gap);
-  grid-template-columns: [avatar] min-content [content] 1fr;
-  position: relative;
-}
-
-.content {
-  grid-column: content;
-  word-break: break-all;
-}
-
-.controls {
-  grid-column: content;
-}
-
 .replies {
   position: relative;
-  margin-inline-start: calc(var(--avatar-size) + var(--grid-gap));
+  margin-inline-start: calc(40px + var(--grid-gap));
 }

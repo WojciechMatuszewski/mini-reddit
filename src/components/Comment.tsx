@@ -1,5 +1,6 @@
 import {
   ElementRef,
+  FormEventHandler,
   Fragment,
   Suspense,
   useId,
@@ -8,13 +9,13 @@ import {
 } from "react";
 import {
   CommentData,
-  useDownVotePost,
+  useDownVoteComment,
   useGetCommentReplies,
   useReplyComment,
-  useUpVotePost
+  useUpVoteComment
 } from "../lib/client";
 
-import { ArrowDown, ArrowUp, MessageCircle, Plus, User } from "lucide-react";
+import { ArrowDown, ArrowUp, MessageCircle, User } from "lucide-react";
 import styles from "./Comment.module.css";
 
 export const Comment = ({
@@ -28,17 +29,25 @@ export const Comment = ({
 
   return (
     <li className={styles["comment"]}>
-      <div className={styles["wrapper"]}>
-        <div className="avatar placeholder bg-neutral-focus rounded-full h-12 w-12 flex items-center justify-center text-white">
+      <div className="grid grid-cols-[[avatar]_min-content_[content]_1fr] gap-3">
+        <div className="avatar placeholder col-[avatar] bg-neutral-focus rounded-full h-12 w-12 flex items-center justify-center text-white">
           <User />
         </div>
-        <p className={styles["content"]}>{comment.content}</p>
-        <div className={styles["controls"]}>
-          <Controls
-            upVotes={<span className="tabular-nums">{comment.upVotes}</span>}
-            postId={postId}
-            comment={comment}
-          />
+
+        <div>
+          <span className="font-semibold text-lg self-start">
+            {comment.author}
+          </span>
+
+          <p>{comment.content}</p>
+
+          <div className="mt-2 -mx-1">
+            <Controls
+              upVotes={<span className="tabular-nums">{comment.upVotes}</span>}
+              postId={postId}
+              comment={comment}
+            />
+          </div>
         </div>
       </div>
       {hasReplies ? (
@@ -47,44 +56,6 @@ export const Comment = ({
         </div>
       ) : null}
     </li>
-  );
-};
-
-const Controls = ({
-  postId,
-  comment,
-  upVotes
-}: {
-  postId: string;
-  comment: CommentData;
-  upVotes: React.ReactNode;
-}) => {
-  const { mutate: upVotePost } = useUpVotePost();
-  const { mutate: downVotePost } = useDownVotePost();
-
-  return (
-    <div className="flex gap-1">
-      <button
-        className="btn rounded-md btn-xs btn-ghost p-0"
-        onClick={() => {
-          upVotePost({ id: comment.id, postId });
-        }}
-      >
-        <ArrowUp className="h-5 w-5" />
-        <span className="sr-only">Up vote</span>
-      </button>
-      {upVotes}
-      <button
-        className="btn rounded-md btn-xs btn-ghost p-0"
-        onClick={() => {
-          downVotePost({ id: comment.id, postId });
-        }}
-      >
-        <ArrowDown className="h-5 w-5" />
-        <span className="sr-only">Down vote</span>
-      </button>
-      <Reply comment={comment} />
-    </div>
   );
 };
 
@@ -112,8 +83,7 @@ const Replies = ({
         toggleShowReplies();
       }}
     >
-      <Plus className="w-4 h-4" />
-      {comment.numberOfComments} more replies
+      Load more replies
     </button>
   );
 };
@@ -125,26 +95,98 @@ const RepliesList = ({
   commentId: string;
   postId: string;
 }) => {
-  const { data: comments } = useGetCommentReplies({
+  const {
+    data: comments,
+    fetchNextPage,
+    hasNextPage
+  } = useGetCommentReplies({
     inReplyToId: commentId,
     postId
   });
 
   const replies = comments.pages.flatMap((page) => page.items);
   return (
-    <ul className="grid grid-flow-row gap-3">
-      {replies.map((reply) => {
-        return <Comment key={reply.id} comment={reply} postId={postId} />;
-      })}
-    </ul>
+    <Fragment>
+      <ul className="grid grid-flow-row gap-3">
+        {replies.map((reply) => {
+          return <Comment key={reply.id} comment={reply} postId={postId} />;
+        })}
+      </ul>
+      {hasNextPage ? (
+        <button
+          className="btn btn-xs rounded-md mt-3"
+          onClick={() => {
+            fetchNextPage();
+          }}
+        >
+          Load more replies
+        </button>
+      ) : null}
+    </Fragment>
   );
 };
 
-const Reply = ({ comment }: { comment: CommentData }) => {
-  const dialogRef = useRef<ElementRef<"dialog">>(null);
-  const { mutateAsync: replyComment } = useReplyComment();
+const Controls = ({
+  postId,
+  comment,
+  upVotes
+}: {
+  postId: string;
+  comment: CommentData;
+  upVotes: React.ReactNode;
+}) => {
+  return (
+    <div className="flex gap-1">
+      <UpVoteComment commentId={comment.id} postId={postId} />
+      {upVotes}
+      <DownVoteComment commentId={comment.id} postId={postId} />
+      <ReplyToComment comment={comment} postId={postId} />
+    </div>
+  );
+};
 
-  const replyTextareaId = useId();
+interface FormElements extends HTMLFormControlsCollection {
+  author: HTMLInputElement;
+  content: HTMLTextAreaElement;
+}
+
+interface ReplyToCommentFormElement extends HTMLFormElement {
+  readonly elements: FormElements;
+}
+
+const ReplyToComment = ({
+  comment,
+  postId
+}: {
+  comment: CommentData;
+  postId: string;
+}) => {
+  const dialogRef = useRef<ElementRef<"dialog">>(null);
+  const { mutate: replyComment } = useReplyComment({
+    onSuccess: () => {
+      dialogRef.current?.close();
+    }
+  });
+
+  const replyAuthorId = useId();
+  const replyContentId = useId();
+
+  const handleOnSubmit: FormEventHandler<ReplyToCommentFormElement> = (
+    event
+  ) => {
+    event.preventDefault();
+    const authorValue = event.currentTarget.elements.author.value;
+    const contentValue = event.currentTarget.elements.content.value;
+
+    replyComment({
+      author: authorValue,
+      content: contentValue,
+      inReplyToId: comment.id,
+      postId: postId
+    });
+
+    event.currentTarget.reset();
+  };
 
   return (
     <Fragment>
@@ -164,20 +206,33 @@ const Reply = ({ comment }: { comment: CommentData }) => {
             <div className="h-[100%] w-2 bg-base-300 rounded-md" />
             <p className="py italic break-all p-2">{comment.content}</p>
           </div>
-          <form method="dialog">
+          <form onSubmit={handleOnSubmit}>
             <fieldset>
               <div className="form-control">
-                <label htmlFor={replyTextareaId} className="label">
+                <label className="label" htmlFor={replyAuthorId}>
+                  Author
+                </label>
+                <input
+                  autoFocus={true}
+                  name="author"
+                  id={replyAuthorId}
+                  type="text"
+                  className="input input-bordered rounded-md input-md"
+                />
+              </div>
+              <div className="form-control">
+                <label htmlFor={replyContentId} className="label">
                   Reply
                 </label>
                 <textarea
-                  id={replyTextareaId}
+                  name="content"
+                  id={replyContentId}
                   className="textarea textarea-bordered rounded-md textarea-md w-full"
                 />
               </div>
-              <div className="modal-action">
-                <button className="btn btn-ghost rounded-md">Close</button>
+              <div className="modal-action flex-row-reverse justify-start">
                 <button className="btn rounded-md btn-neutral">Submit</button>
+                <button className="btn btn-ghost rounded-md">Close</button>
               </div>
             </fieldset>
           </form>
@@ -186,3 +241,53 @@ const Reply = ({ comment }: { comment: CommentData }) => {
     </Fragment>
   );
 };
+
+function UpVoteComment({
+  commentId,
+  postId
+}: {
+  commentId: string;
+  postId: string;
+}) {
+  const { mutate: upVoteComment } = useUpVoteComment();
+
+  return (
+    <button
+      className="btn rounded-md btn-xs btn-ghost p-0"
+      onClick={() => {
+        upVoteComment({
+          id: commentId,
+          postId
+        });
+      }}
+    >
+      <ArrowUp className="h-5 w-5" />
+      <span className="sr-only">Up vote</span>
+    </button>
+  );
+}
+
+function DownVoteComment({
+  commentId,
+  postId
+}: {
+  commentId: string;
+  postId: string;
+}) {
+  const { mutate: downVoteComment } = useDownVoteComment();
+
+  return (
+    <button
+      className="btn rounded-md btn-xs btn-ghost p-0"
+      onClick={() => {
+        downVoteComment({
+          id: commentId,
+          postId
+        });
+      }}
+    >
+      <ArrowDown className="h-5 w-5" />
+      <span className="sr-only">Down vote</span>
+    </button>
+  );
+}

@@ -13,7 +13,7 @@ interface PostFormElement extends HTMLFormElement {
   readonly elements: FormElements;
 }
 
-export const CreatePost = () => {
+export const CreatePostForm = () => {
   const errorMessageRef = useRef<ElementRef<"div">>(null);
   const {
     mutateAsync: createPost,

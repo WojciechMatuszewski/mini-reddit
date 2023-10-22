@@ -5,6 +5,8 @@ import { z } from "zod";
 const t = initTRPC.create();
 const prisma = new PrismaClient();
 
+const PAGE_SIZE = 20;
+
 const createPost = t.procedure
   .input(
     z.object({
@@ -40,7 +42,7 @@ const getPosts = t.procedure
         take: 1
       }),
       prisma.post.findMany({
-        take: 10,
+        take: PAGE_SIZE,
         skip: input.cursor ? 1 : 0,
         cursor: input.cursor ? { createdAt: input.cursor } : undefined,
         orderBy: {
@@ -109,10 +111,14 @@ const getPostComments = t.procedure
         orderBy: {
           createdAt: "asc"
         },
+        where: {
+          postId: input.postId,
+          inReplyToId: null
+        },
         take: 1
       }),
       prisma.comment.findMany({
-        take: 1,
+        take: PAGE_SIZE,
         skip: input.cursor ? 1 : 0,
         cursor: input.cursor ? { createdAt: input.cursor } : undefined,
         orderBy: {
@@ -183,10 +189,14 @@ const getCommentReplies = t.procedure
         orderBy: {
           createdAt: "asc"
         },
+        where: {
+          postId: input.postId,
+          inReplyToId: input.inReplyToId
+        },
         take: 1
       }),
       prisma.comment.findMany({
-        take: 1,
+        take: PAGE_SIZE,
         skip: input.cursor ? 1 : 0,
         cursor: input.cursor ? { createdAt: input.cursor } : undefined,
         orderBy: {

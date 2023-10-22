@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { CommentPost } from "../../../components/CommentPost";
+import { CommentPostForm } from "../../../components/CommentPostForm";
 import { PostContents } from "../../../components/PostContents";
 import { getTRPCClient } from "../../../lib/trpc";
 import { PostComments } from "../../../components/PostComments";
@@ -19,7 +19,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
     <article className="max-w-sm m-auto">
       <PostContents post={post} />
       <div className="divider" />
-      <CommentPost postId={post.id} />
+      <CommentPostForm postId={post.id} />
       <Suspense fallback={<span>Loading comments...</span>}>
         <PostComments postId={post.id} />
       </Suspense>

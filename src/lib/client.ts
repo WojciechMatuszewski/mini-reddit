@@ -15,9 +15,16 @@ export type PostData = RouterOutputs["getPost"];
 export type CommentData = RouterOutputs["getPostComments"]["items"][number];
 
 export const useCreatePost = (options?: { onError: VoidFunction }) => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async (payload: RouterInputs["createPost"]) => {
       return await getTRPCClient().createPost.mutate(payload);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["posts"]
+      });
     },
     ...options
   });
@@ -85,7 +92,7 @@ export const useGetPostComments = ({ postId }: { postId: string }) => {
   });
 };
 
-export const useReplyComment = () => {
+export const useReplyComment = ({ onSuccess }: { onSuccess: VoidFunction }) => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -111,6 +118,8 @@ export const useReplyComment = () => {
         ],
         exact: false
       });
+
+      onSuccess();
     }
   });
 };
@@ -144,7 +153,7 @@ export const useGetCommentReplies = ({
   });
 };
 
-export const useUpVotePost = () => {
+export const useUpVoteComment = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -164,7 +173,7 @@ export const useUpVotePost = () => {
   });
 };
 
-export const useDownVotePost = () => {
+export const useDownVoteComment = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id }: { id: string; postId: string }) => {

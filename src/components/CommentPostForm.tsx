@@ -1,7 +1,7 @@
 "use client";
 
-import { ElementRef, useId, useRef, useTransition } from "react";
-import { useCommentPost, useCreatePost } from "../lib/client";
+import { ElementRef, useId, useRef } from "react";
+import { useCommentPost } from "../lib/client";
 
 interface FormElements extends HTMLFormControlsCollection {
   author: HTMLInputElement;
@@ -12,10 +12,10 @@ interface CommentPostFormElement extends HTMLFormElement {
   readonly elements: FormElements;
 }
 
-export const CommentPost = ({ postId }: { postId: string }) => {
+export const CommentPostForm = ({ postId }: { postId: string }) => {
   const errorMessageRef = useRef<ElementRef<"div">>(null);
   const {
-    mutateAsync: commentPost,
+    mutate: commentPost,
     isPending,
     isError
   } = useCommentPost({
@@ -35,11 +35,13 @@ export const CommentPost = ({ postId }: { postId: string }) => {
     const author = event.currentTarget.elements.author.value;
     const content = event.currentTarget.elements.content.value;
 
-    await commentPost({
+    commentPost({
       author,
       content,
       postId
     });
+
+    event.currentTarget.reset();
   };
 
   const authorInputId = useId();

@@ -26,7 +26,7 @@ const NextPageButton = ({ onClick }: { onClick: VoidFunction }) => {
 
   return (
     <button
-      className="mt-2 border p-2 disabled:bg-gray-400"
+      className="btn btn-sm rounded-sm mt-4"
       disabled={isPending}
       onClick={() => {
         startTransition(() => {
@@ -34,7 +34,7 @@ const NextPageButton = ({ onClick }: { onClick: VoidFunction }) => {
         });
       }}
     >
-      Next page
+      Load more comments
     </button>
   );
 };
