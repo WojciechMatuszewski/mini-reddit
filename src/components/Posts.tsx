@@ -10,8 +10,8 @@ export const Posts = ({ initialData }: { initialData: PostPaginationData }) => {
   const posts = data.pages.flatMap((page) => page.items);
   return (
     <section>
-      <h1 className="font-semibold text-4xl mb-2">Posts</h1>
-      <ul className="grid gap-2 list-none m-0 p-0">
+      <h1 className="font-semibold text-4xl mb-3">Posts</h1>
+      <ul className="grid gap-3 list-none m-0 p-0">
         {posts.map((post) => {
           return <Post post={post} key={post.id} />;
         })}
@@ -23,8 +23,8 @@ export const Posts = ({ initialData }: { initialData: PostPaginationData }) => {
 
 function Post({ post }: { post: NonNullable<PostData> }) {
   return (
-    <li>
-      <Link className="text-blue-500" href={`/post/${post.id}`}>
+    <li className={"p-0 m-0"}>
+      <Link className="text-blue-500 p-2 -mx-2" href={`/post/${post.id}`}>
         {post.title}
       </Link>
     </li>

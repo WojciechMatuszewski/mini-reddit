@@ -16,7 +16,7 @@ interface PostFormElement extends HTMLFormElement {
 export const CreatePostForm = () => {
   const errorMessageRef = useRef<ElementRef<"div">>(null);
   const {
-    mutateAsync: createPost,
+    mutate: createPost,
     isPending,
     isError
   } = useCreatePost({
@@ -37,14 +37,13 @@ export const CreatePostForm = () => {
     const title = event.currentTarget.elements.title.value;
     const content = event.currentTarget.elements.content.value;
 
-    await createPost({
+    createPost({
       author,
       content,
       title
     });
 
-    // Why is the current target not available here?
-    // https://github.com/github/eslint-plugin-github/blob/main/docs/rules/async-currenttarget.md
+    event.currentTarget.reset();
   };
 
   const authorInputId = useId();
@@ -99,9 +98,12 @@ export const CreatePostForm = () => {
 
         <div
           ref={errorMessageRef}
-          className="border-red-50 bg-red-100  flex gap-2 "
+          className="border-red-50 bg-red-100  flex gap-2 mb-3"
           tabIndex={isError ? 0 : -1}
-          style={{ visibility: isError ? "visible" : "hidden" }}
+          style={{
+            visibility: isError ? "visible" : "hidden",
+            height: isError ? "auto" : 0
+          }}
           role="alert"
         >
           <div className="w-[5px] bg-red-300" />

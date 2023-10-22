@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Providers } from "../lib/Providers";
+import { AppProviders } from "../lib/AppProviders";
 
 import "./globals.css";
 
@@ -16,7 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en" data-theme="cupcake">
       <body className="p-4">
-        <Providers>{children}</Providers>
+        <AppProviders>{children}</AppProviders>
       </body>
     </html>
   );

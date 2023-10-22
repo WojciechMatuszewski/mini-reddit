@@ -3,7 +3,7 @@ import { initTRPC } from "@trpc/server";
 import { z } from "zod";
 
 const t = initTRPC.create();
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ log: ["query"] });
 
 const PAGE_SIZE = 20;
 

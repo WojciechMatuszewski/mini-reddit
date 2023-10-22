@@ -3,8 +3,8 @@ import {
   FormEventHandler,
   Fragment,
   Suspense,
+  startTransition,
   useId,
-  useReducer,
   useRef
 } from "react";
 import {
@@ -16,6 +16,10 @@ import {
 } from "../lib/client";
 
 import { ArrowDown, ArrowUp, MessageCircle, User } from "lucide-react";
+import {
+  useGetShowingReplies,
+  useSetShowReplies
+} from "../lib/PostCommentsProvider";
 import styles from "./Comment.module.css";
 
 export const Comment = ({
@@ -35,11 +39,11 @@ export const Comment = ({
         </div>
 
         <div>
-          <span className="font-semibold text-lg self-start">
+          <span className="font-semibold text-lg self-start break-all">
             {comment.author}
           </span>
 
-          <p>{comment.content}</p>
+          <p className={"break-all"}>{comment.content}</p>
 
           <div className="mt-2 -mx-1">
             <Controls
@@ -66,11 +70,14 @@ const Replies = ({
   comment: CommentData;
   postId: string;
 }) => {
-  const [showReplies, toggleShowReplies] = useReducer((state) => !state, false);
+  const setShowReplies = useSetShowReplies();
+  const isShowingReplies = useGetShowingReplies({ commentId: comment.id });
 
-  if (showReplies) {
+  if (isShowingReplies) {
     return (
-      <Suspense fallback={<span>Loading...</span>}>
+      <Suspense
+        fallback={<span className={"btn btn-xs rounded-md"}>Loading...</span>}
+      >
         <RepliesList commentId={comment.id} postId={postId} />
       </Suspense>
     );
@@ -80,7 +87,7 @@ const Replies = ({
     <button
       className="btn btn-xs rounded-md"
       onClick={() => {
-        toggleShowReplies();
+        setShowReplies({ commentId: comment.id, showingReplies: true });
       }}
     >
       Load more replies
@@ -116,7 +123,9 @@ const RepliesList = ({
         <button
           className="btn btn-xs rounded-md mt-3"
           onClick={() => {
-            fetchNextPage();
+            startTransition(() => {
+              fetchNextPage();
+            });
           }}
         >
           Load more replies
@@ -162,9 +171,12 @@ const ReplyToComment = ({
   postId: string;
 }) => {
   const dialogRef = useRef<ElementRef<"dialog">>(null);
+  const setShowingReplies = useSetShowReplies();
+
   const { mutate: replyComment } = useReplyComment({
     onSuccess: () => {
       dialogRef.current?.close();
+      setShowingReplies({ commentId: comment.id, showingReplies: true });
     }
   });
 

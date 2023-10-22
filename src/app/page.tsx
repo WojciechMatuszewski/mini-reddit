@@ -7,7 +7,7 @@ export default async function Page() {
   const initialPostsData = await getTRPCClient().getPosts.query({});
 
   return (
-    <main className="max-w-md m-auto prose">
+    <main className="max-w-xl m-auto prose">
       <CreatePostForm />
       <Suspense fallback={<p>Loading...</p>}>
         <Posts initialData={initialPostsData} />
