@@ -74,7 +74,11 @@ export const useGetShowingReplies = ({ commentId }: { commentId: string }) => {
   }
 
   // Not really a violation of hooks as the store is either defined or not defined.
-  return useSyncExternalStore(store.subscribe, () => {
-    return store.getSnapshot().get(commentId);
-  });
+  return useSyncExternalStore(
+    store.subscribe,
+    () => {
+      return store.getSnapshot().get(commentId);
+    },
+    () => false
+  );
 };

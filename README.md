@@ -8,6 +8,20 @@ The goal was to learn/brush-up my knowledge on the following technologies.
 
 3. [TailwindCSS](https://tailwindcss.com/)
 
+## Running the app
+
+1. Create a `.env.local` file in the root directory.
+
+2. Create a sqlite DB file somewhere in the project directory.
+
+3. Create `DATABASE_URL` variable in the `.env.local` pointing to the file you have created in step number 2.
+
+4. Run `pnpm prisma migrate dev`
+
+5. Run `pnpm prisma generate`
+
+6. Run `pnpm run dev`
+
 ## Learnings
 
 - One can go surprisingly far with uncontrolled forms.
@@ -31,3 +45,25 @@ The goal was to learn/brush-up my knowledge on the following technologies.
     - ORMs are quite nice, but one has to understand what kind of queries they are performing underneath. While I trust the authors of Prisma, I would feel safer with having those SQLs statements "visible" in the open.
 
         - To see what queries Prisma performs, supply the `log` parameter when initializing the client.
+
+- To use the `using` keyword from TypeScript 5.2 I had to do the following
+
+    1. Ensure the `esbuild` targets `es2022`.
+
+    2. Update Node version to 20.x
+
+    See [this thread](https://github.com/vitejs/vite/discussions/14327).
+
+- Creating a temporary directory in the system's _tmp_ directory is a bit convoluted in Node.js
+
+    - Go and Rust have a single function to do this.
+
+- Testing is interesting.
+
+    - When using sqlite, I can create a temporary database for each test scenario.
+
+        - This can be quite costly in terms of IO as we have to create directories and then remove them at the end of the test.
+
+        - The `using` keyword is quite handy for creating those directories.
+
+

@@ -1,9 +1,8 @@
-import { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "@prisma/client";
 import { initTRPC } from "@trpc/server";
 import { z } from "zod";
 
-const t = initTRPC.create();
-const prisma = new PrismaClient({ log: ["query"] });
+const t = initTRPC.context<{ prisma: PrismaClient }>().create();
 
 const PAGE_SIZE = 20;
 
@@ -15,7 +14,7 @@ const createPost = t.procedure
       content: z.string()
     })
   )
-  .mutation(async ({ input }) => {
+  .mutation(async ({ input, ctx: { prisma } }) => {
     const response = await prisma.post.create({
       data: {
         content: input.content,
@@ -30,10 +29,11 @@ const createPost = t.procedure
 const getPosts = t.procedure
   .input(
     z.object({
-      cursor: z.string().optional()
+      cursor: z.string().optional(),
+      pageSize: z.number().optional()
     })
   )
-  .query(async ({ input }) => {
+  .query(async ({ input, ctx: { prisma } }) => {
     const [[lastPost], paginatedPosts] = await prisma.$transaction([
       prisma.post.findMany({
         orderBy: {
@@ -42,7 +42,7 @@ const getPosts = t.procedure
         take: 1
       }),
       prisma.post.findMany({
-        take: PAGE_SIZE,
+        take: input.pageSize ?? PAGE_SIZE,
         skip: input.cursor ? 1 : 0,
         cursor: input.cursor ? { createdAt: input.cursor } : undefined,
         orderBy: {
@@ -66,7 +66,7 @@ const getPost = t.procedure
       id: z.string()
     })
   )
-  .query(async ({ input }) => {
+  .query(async ({ input, ctx: { prisma } }) => {
     const post = await prisma.post.findFirst({
       where: {
         id: {
@@ -86,7 +86,7 @@ const commentPost = t.procedure
       author: z.string()
     })
   )
-  .mutation(async ({ input }) => {
+  .mutation(async ({ input, ctx: { prisma } }) => {
     const comment = await prisma.comment.create({
       data: {
         author: input.author,
@@ -102,10 +102,11 @@ const getPostComments = t.procedure
   .input(
     z.object({
       postId: z.string(),
-      cursor: z.string().optional()
+      cursor: z.string().optional(),
+      pageSize: z.number().optional()
     })
   )
-  .query(async ({ input }) => {
+  .query(async ({ input, ctx: { prisma } }) => {
     const [[lastComment], paginatedComments] = await prisma.$transaction([
       prisma.comment.findMany({
         orderBy: {
@@ -118,7 +119,7 @@ const getPostComments = t.procedure
         take: 1
       }),
       prisma.comment.findMany({
-        take: PAGE_SIZE,
+        take: input.pageSize ?? PAGE_SIZE,
         skip: input.cursor ? 1 : 0,
         cursor: input.cursor ? { createdAt: input.cursor } : undefined,
         orderBy: {
@@ -150,7 +151,7 @@ const replyComment = t.procedure
       author: z.string()
     })
   )
-  .mutation(async ({ input }) => {
+  .mutation(async ({ input, ctx: { prisma } }) => {
     const [comment] = await prisma.$transaction([
       prisma.comment.create({
         data: {
@@ -180,10 +181,11 @@ const getCommentReplies = t.procedure
     z.object({
       inReplyToId: z.string(),
       postId: z.string(),
-      cursor: z.string().optional()
+      cursor: z.string().optional(),
+      pageSize: z.number().optional()
     })
   )
-  .query(async ({ input }) => {
+  .query(async ({ input, ctx: { prisma } }) => {
     const [[lastComment], paginatedComments] = await prisma.$transaction([
       prisma.comment.findMany({
         orderBy: {
@@ -196,7 +198,7 @@ const getCommentReplies = t.procedure
         take: 1
       }),
       prisma.comment.findMany({
-        take: PAGE_SIZE,
+        take: input.pageSize ?? PAGE_SIZE,
         skip: input.cursor ? 1 : 0,
         cursor: input.cursor ? { createdAt: input.cursor } : undefined,
         orderBy: {
@@ -225,7 +227,7 @@ const upVotePost = t.procedure
       id: z.string()
     })
   )
-  .mutation(async ({ input }) => {
+  .mutation(async ({ input, ctx: { prisma } }) => {
     return await prisma.comment.update({
       where: {
         id: input.id
@@ -244,7 +246,7 @@ const downVotePost = t.procedure
       id: z.string()
     })
   )
-  .mutation(async ({ input }) => {
+  .mutation(async ({ input, ctx: { prisma } }) => {
     return await prisma.comment.update({
       where: {
         id: input.id
